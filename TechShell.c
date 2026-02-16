@@ -43,7 +43,7 @@ struct ShellCommand parseCommand(char *input)
 	// I have to init the Command Structs
 	command.argc = 0;
 	command.redirect = 0;
-	command.redirectType = NULL;
+	command.redirectType;
 	command.redirectFile = NULL;
 	command.command = NULL;
 
@@ -76,6 +76,8 @@ struct ShellCommand parseCommand(char *input)
 	{
 		printf("word %d: %s\n", n, command.args[n]);
 	}
+	printf("redirect %c\n", command.redirectType);
+	printf("redirect file %s", command.redirectFile);
 	return command;
 }
 
