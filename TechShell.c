@@ -1,22 +1,76 @@
 // Name(s):
 // Description:
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
+#define BUFFER 1024
+
+struct ShellCommand{
+	char *command[256];
+	char *args[256];
+	int argc;
+	int redirect = 0;
+	char redirectType = NULL;
+	char *redirectFile = NULL:
+}
 
 //////// Some function ideas: ////////////
-// Note: Some code is reflected in main that represents these functions,
-// but it is up to you to determine how you want to organize your code.
 
-/* 
-    A function that causes the prompt to 
-    display in the terminal
-*/
+void displayPrompt()
+{
+	char cwd[BUFFER];
+	getcwd(cwd, sizeof(cwd));
+	printf("%s$", cwd);
+}
 
-/*
-    A function that takes input from the user.
-    It may return return the input to the calling statement or 
-    store it at some memory location using a pointer.
-*/ 
+void getInput(char *input, size_t size)
+{
+	fgets(input, size, stdin);
+}
 
+
+struct ShellCommand parseCommand(char *input)
+{
+	cost char s[2] = " ";
+	char *token;
+	char *words[20];
+	int index = 0;
+	ShellCommand command;
+
+
+	token = strtok(str,s);
+
+	while (token != NULL && index < 20)
+	{
+		if(strcmp(token, ">") || strcmp(token, "<"))
+		{
+			command.redirect = 1;
+			command.redirectType = token;
+
+			token = strtok(NULL, s);
+			command.redirectFIle = token;
+			token = strtok(NULL, s);
+		}
+		words[index] = token;
+		index++;
+
+		token = strtok(NULL, s);
+	}
+	command.argc = index;
+	command.args = words;
+
+	for (int n = 0; n < index; n++)
+	{
+		printf("word %d: %s\n", n, words[n]);
+	}
+
+
+
+		
 /*
     A function that parses through the user input.
     Consider having this function return a struct that stores vital
@@ -60,8 +114,9 @@
 
 int main() // MAIN
 {
-	char* input;
-	struct ShellCommand command;
+	char input[256];
+
+/*	struct ShellCommand command;
 		
 	// repeatedly prompt the user for input
 	for (;;)
@@ -78,7 +133,10 @@ int main() // MAIN
 	    // execute the command
 	    executeCommand(command);
 	}
-
+*/
+	printPrompt();
+	getInput(input, sizeof(input));
+	parseCommand(input);
 	exit(0);
 }
 
