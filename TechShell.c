@@ -10,13 +10,13 @@
 #define BUFFER 1024
 
 struct ShellCommand{
-	char *command[256];
+	char *command;
 	char *args[256];
 	int argc;
-	int redirect = 0;
-	char redirectType = NULL;
-	char *redirectFile = NULL:
-}
+	int redirect; // using an int instead of Bool cause I couldn't get it to work so 0 or 1
+	char redirectType; // Should only ever be < or > 
+	char *redirectFile; 
+};
 
 //////// Some function ideas: ////////////
 
@@ -35,38 +35,50 @@ void getInput(char *input, size_t size)
 
 struct ShellCommand parseCommand(char *input)
 {
-	cost char s[2] = " ";
+	const char s[2] = " ";
 	char *token;
-	char *words[20];
 	int index = 0;
-	ShellCommand command;
+	struct ShellCommand command;
+
+	// I have to init the Command Structs
+	command.argc = 0;
+	command.redirect = 0;
+	command.redirectType = NULL;
+	command.redirectFile = NULL;
+	command.command = NULL;
 
 
-	token = strtok(str,s);
+
+	token = strtok(input,s);
 
 	while (token != NULL && index < 20)
 	{
-		if(strcmp(token, ">") || strcmp(token, "<"))
+		if(strcmp(token, ">") == 0 || strcmp(token, "<") == 0)
 		{
 			command.redirect = 1;
-			command.redirectType = token;
+			command.redirectType = token[0];
 
 			token = strtok(NULL, s);
-			command.redirectFIle = token;
+			command.redirectFile = token;
 			token = strtok(NULL, s);
 		}
-		words[index] = token;
+		else{
+		command.args[index] = token;
 		index++;
 
 		token = strtok(NULL, s);
+		}
 	}
+	command.args[index] = NULL;
 	command.argc = index;
-	command.args = words;
 
 	for (int n = 0; n < index; n++)
 	{
-		printf("word %d: %s\n", n, words[n]);
+		printf("word %d: %s\n", n, command.args[n]);
 	}
+	return command;
+}
+
 
 
 
@@ -115,10 +127,9 @@ struct ShellCommand parseCommand(char *input)
 int main() // MAIN
 {
 	char input[256];
-
-/*	struct ShellCommand command;
+	struct ShellCommand command;
 		
-	// repeatedly prompt the user for input
+/*	// repeatedly prompt the user for input
 	for (;;)
 	{
         // display the prompt
@@ -134,9 +145,9 @@ int main() // MAIN
 	    executeCommand(command);
 	}
 */
-	printPrompt();
+	displayPrompt();
 	getInput(input, sizeof(input));
-	parseCommand(input);
+	command = parseCommand(input);
 	exit(0);
 }
 
