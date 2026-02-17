@@ -33,7 +33,7 @@ void getInput(char *input, size_t size)
 }
 
 
-struct ShellCommand parseCommand(char *input)
+struct ShellCommand parseInput(char *input)
 {
 	const char s[2] = " ";
 	char *token;
@@ -131,25 +131,23 @@ int main() // MAIN
 	char input[256];
 	struct ShellCommand command;
 		
-/*	// repeatedly prompt the user for input
+	// repeatedly prompt the user for input
 	for (;;)
 	{
         // display the prompt
         displayPrompt();
 
 	    // get the user's input
-	    input = getInput();
+	    getInput(input, sizeof(input));
 	    
 	    // parse the command line
 	    command = parseInput(input);
 	    
-	    // execute the command
+/*	    // execute the command
 	    executeCommand(command);
+	    */
 	}
-*/
-	displayPrompt();
-	getInput(input, sizeof(input));
-	command = parseCommand(input);
+
 	exit(0);
 }
 
