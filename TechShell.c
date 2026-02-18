@@ -71,13 +71,14 @@ struct ShellCommand parseInput(char *input)
 	}
 	command.args[index] = NULL;
 	command.argc = index;
+	command.command = command.args[0];
 
-	for (int n = 0; n < index; n++)
+	for (int n = 0; n <= index; n++)
 	{
 		printf("word %d: %s\n", n, command.args[n]);
 	}
 	printf("redirect %c\n", command.redirectType);
-	printf("redirect file %s", command.redirectFile);
+	printf("redirect file %s\n", command.redirectFile);
 	return command;
 }
 
@@ -104,7 +105,40 @@ struct ShellCommand parseInput(char *input)
     Be sure to consider/test for situations when a backslash is used to escape the space char
     and when quotes are used to group together various tokens.
 */
+void executeCommand(struct ShellCommand command)
+{
+	printf("THIS IS THE COMMAND 0 %s\n", command.args[0]);
+	if(strcmp(command.args[0], "cd") == 0)
+	{
+		printf("TESTTESTTEST\n");
+		if(chdir(command.args[1]) == -1)
+			perror("Cannot find Director");
+	}
 
+	execvp(command.command, command.args);
+	printf("IF WE GET HERE THE EXEC COMMAND DOESN'T WORK");
+
+	pid_t pid = fork();
+
+	if(pid < 0)
+	{
+		perror("FORK FUNCTION FAILED");
+	}
+
+	if(pid == 0)
+	{
+
+		execvp(command.command, command.args);
+		printf("IF WE GET HERE THE EXEC COMMAND DOESN'T WORK");
+		_exit(1);
+	}
+
+	else
+	{
+		wait(NULL);
+	}
+			
+}
 /*
     A function that executes the command. 
     This function might take in a struct that represents the shell command.
@@ -143,9 +177,9 @@ int main() // MAIN
 	    // parse the command line
 	    command = parseInput(input);
 	    
-/*	    // execute the command
+	    // execute the command
 	    executeCommand(command);
-	    */
+	    
 	}
 
 	exit(0);
