@@ -6,6 +6,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+
 
 #define BUFFER 1024
 
@@ -29,7 +31,8 @@ void displayPrompt()
 
 void getInput(char *input, size_t size)
 {
-	fgets(input, size, stdin);
+    fgets(input, size, stdin);
+    input[strcspn(input, "\n")] = '\0';  // remove newline
 }
 
 
@@ -43,7 +46,7 @@ struct ShellCommand parseInput(char *input)
 	// I have to init the Command Structs
 	command.argc = 0;
 	command.redirect = 0;
-	command.redirectType;
+	command.redirectType = '\0';
 	command.redirectFile = NULL;
 	command.command = NULL;
 
@@ -73,12 +76,6 @@ struct ShellCommand parseInput(char *input)
 	command.argc = index;
 	command.command = command.args[0];
 
-	for (int n = 0; n <= index; n++)
-	{
-		printf("word %d: %s\n", n, command.args[n]);
-	}
-	printf("redirect %c\n", command.redirectType);
-	printf("redirect file %s\n", command.redirectFile);
 	return command;
 }
 
@@ -107,37 +104,74 @@ struct ShellCommand parseInput(char *input)
 */
 void executeCommand(struct ShellCommand command)
 {
-	printf("THIS IS THE COMMAND 0 %s\n", command.args[0]);
-	if(strcmp(command.args[0], "cd") == 0)
-	{
-		printf("TESTTESTTEST\n");
-		if(chdir(command.args[1]) == -1)
-			perror("Cannot find Director");
-	}
+    if (command.command == NULL)
+        return;
 
-	execvp(command.command, command.args);
-	printf("IF WE GET HERE THE EXEC COMMAND DOESN'T WORK");
+    if (strcmp(command.command, "cd") == 0)
+    {
+        if (command.args[1] == NULL)
+        {
+            fprintf(stderr, "cd: missing argument\n");
+        }
+        else if (chdir(command.args[1]) == -1)
+        {
+            perror("cd failed");
+        }
+        return;
+    }
 
-	pid_t pid = fork();
+    pid_t pid = fork();
 
-	if(pid < 0)
-	{
-		perror("FORK FUNCTION FAILED");
-	}
+    if (pid < 0)
+    {
+        perror("fork failed");
+        return;
+    }
 
-	if(pid == 0)
-	{
+    if (pid == 0)
+    {
+		if (command.redirect && command.redirectType == '>')
+		{
+    		int fd = open(command.redirectFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    		if (fd < 0)
+    		{
+        		perror("open failed");
+        		exit(1);
+    		}
 
-		execvp(command.command, command.args);
-		printf("IF WE GET HERE THE EXEC COMMAND DOESN'T WORK");
-		_exit(1);
-	}
+    		dup2(fd, STDOUT_FILENO);
+    		close(fd);
+		}
 
-	else
-	{
-		wait(NULL);
-	}
-			
+		if (command.redirect && command.redirectType == '<')
+        {
+            int fd = open(command.redirectFile, O_RDONLY);
+            if (fd < 0)
+            {
+                perror("open failed");
+                exit(1);
+            }
+
+            // Replace stdin with file
+            if (dup2(fd, STDIN_FILENO) < 0)
+            {
+                perror("dup2 failed");
+                close(fd);
+                exit(1);
+            }
+
+            close(fd);  // not needed anymore
+        }
+
+        execvp(command.command, command.args);
+
+        perror("exec failed");
+        exit(1);
+    }
+    else
+    {
+        wait(NULL);
+    }
 }
 /*
     A function that executes the command. 
